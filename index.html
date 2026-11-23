@@ -4,25 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Night Typewriter</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* VOICE: quiet, late-night, tactile; almost nothing on screen.
    IDEA: a real typewriter carriage: the strike point never moves, the sheet slides under it.
    PICTURE: one lit sheet of paper in a dark room, pooled in lamplight.
-   COLOUR and TYPE: warm near-black room, paper #f1eadc, black ink; Courier Prime throughout.
+   COLOUR and TYPE: warm near-black room, paper #f1eadc, black ink; Georgia italic throughout.
    LAYOUT: full-bleed room, strike point fixed at centre; chrome fades away while typing. */
 :root{color-scheme:dark;--room:#070504;--paper:#f1eadc;--ink:#1c1916;--dim:#a89c8a;--fs:18px;--ml:7ch;--mt:6em;--lh:1.75em}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
-body{margin:0;background:var(--room);color:var(--dim);font:15px/1.5 "Courier Prime","Courier New",monospace;overflow:hidden;cursor:text}
-#paper{position:absolute;left:0;top:0;font-size:var(--fs);line-height:var(--lh);width:calc(var(--cols,64) * 1ch + 14ch);padding:var(--mt) 0 0 var(--ml);color:var(--ink);
+body{margin:0;background:var(--room);color:var(--dim);font:italic 15px/1.5 Georgia,"Times New Roman",serif;overflow:hidden;cursor:text}
+#paper{position:absolute;left:0;top:0;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:var(--fs);line-height:var(--lh);width:calc(var(--cols,64) * 1ch + 14ch);padding:var(--mt) 0 0 var(--ml);color:var(--ink);
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .32 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(90deg,rgba(0,0,0,.05),transparent 8%,transparent 92%,rgba(0,0,0,.06)),var(--paper);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35);transition:transform .11s cubic-bezier(.3,.7,.4,1);will-change:transform}
 #paper.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 .ln{height:var(--lh);white-space:pre}
-.ln span{display:inline-block;width:1ch;opacity:var(--o,1);transform:translateY(var(--y,0))}
+.ln span{display:inline-block;opacity:var(--o,1);transform:translateY(var(--y,0))}
 .light{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
 #lamp{position:fixed;top:0;left:-50vw;width:200vw;height:100vh;pointer-events:none;will-change:transform;transition:transform .14s cubic-bezier(.3,.7,.4,1)}
 #lamp.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
@@ -38,6 +35,7 @@ body.typing #cur{animation:none}
 .chrome{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px max(3vw,14px);transition:opacity .8s}
 body.typing .chrome,body.typing #hint{opacity:0}
 .chrome span{font-size:13px}
+button,input,textarea,label,h2,p,span{font-style:italic}
 button{font:inherit;color:inherit;background:none;border:1px solid rgba(255,230,200,.18);border-radius:6px;min-height:44px;padding:0 16px;cursor:pointer}
 button:hover{border-color:rgba(255,230,200,.4);color:#f1eadc}
 button:focus-visible,input:focus-visible{outline:2px solid #e9c48a;outline-offset:2px}
@@ -126,12 +124,12 @@ function drawLine(i){
 function drawAll(){linesEl.innerHTML='';lineEls.length=0;lines.forEach((_,i)=>drawLine(i));place(false)}
 function place(isReturn){
   const row=lines.length-1,col=lines[row].length;
-  const W=innerWidth,ch=cur.offsetWidth||S.fs*.6,pw=paper.offsetWidth,cx=7*ch+col*ch;
+  const W=innerWidth,ch=cur.offsetWidth||S.fs*.6,pw=paper.offsetWidth,le=lineEls[row],last=le&&le.lastElementChild,cx=last?last.offsetLeft+last.offsetWidth:(le?le.offsetLeft:7*ch);
   const left=pw<=W-24?(W-pw)/2:W/2-cx;                 // sheet stays still; on narrow screens it slides so the letter stays in view
   paper.classList.toggle('ret',!!isReturn);
   paper.style.transform=`translate(${left.toFixed(1)}px, calc(45vh - var(--mt) - ${row} * var(--lh)))`;
   paper.style.height=`calc(var(--mt) + ${Math.max(lines.length+18,44)} * var(--lh))`;
-  cur.style.left=`calc(var(--ml) + ${col}ch)`;cur.style.top=`calc(var(--mt) + ${row+1} * var(--lh) - .35em)`;
+  cur.style.left=cx.toFixed(1)+'px';cur.style.top=`calc(var(--mt) + ${row+1} * var(--lh) - .35em)`;
   if(lampEl){lampEl.classList.toggle('ret',!!isReturn);lampEl.style.transform=`translate3d(${(left+cx+ch/2-W/2).toFixed(1)}px,0,0)`}
   const w=lines.join(' ').trim().split(/\s+/).filter(Boolean).length;
   $('wc').textContent=w===1?'1 word':w+' words';
