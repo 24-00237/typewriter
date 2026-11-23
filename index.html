@@ -27,7 +27,7 @@ body{margin:0;background:var(--room);color:var(--dim);font:15px/1.5 "Courier Pri
 #lamp{position:fixed;top:0;left:-50vw;width:200vw;height:100vh;pointer-events:none;will-change:transform;transition:transform .14s cubic-bezier(.3,.7,.4,1)}
 #lamp.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 #lamp canvas,#lamp svg{position:absolute;inset:0;width:100%;height:100%}
-#wm{opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .35s ease}
+#wm{mix-blend-mode:screen;opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .35s ease}
 .chrome,#menu,#hint{z-index:5}
 #cur{position:absolute;width:1ch;height:2px;background:var(--ink);opacity:.35;transition:top .3s;animation:blink 1.4s steps(2) infinite}
 @keyframes blink{50%{opacity:.08}}
@@ -178,14 +178,14 @@ function drawLamp(){
   const cone=c=>{c.beginPath();c.moveTo((mx-mw)*K,my*K);c.lineTo((mx+mw)*K,my*K);c.lineTo((mx+half)*K,top*K);c.lineTo((mx-half)*K,top*K);c.closePath()};
   for(const cv of [dk,wm]){cv.width=Math.ceil(LW*K);cv.height=Math.ceil(H*K)}
   let c=dk.getContext('2d');
-  c.fillStyle='rgba(4,3,2,.965)';c.fillRect(0,0,dk.width,dk.height);
+  c.fillStyle='rgba(5,3,2,.9)';c.fillRect(0,0,dk.width,dk.height);
   let g=c.createLinearGradient(0,my*K,0,top*K);
   g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(t,'rgba(0,0,0,1)');g.addColorStop(o(.3),'rgba(0,0,0,.72)');g.addColorStop(o(.65),'rgba(0,0,0,.33)');g.addColorStop(1,'rgba(0,0,0,0)');
-  c.globalCompositeOperation='destination-out';c.filter='blur(5px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';c.globalCompositeOperation='source-over';
+  c.globalCompositeOperation='destination-out';c.filter='blur(8px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';c.globalCompositeOperation='source-over';
   c=wm.getContext('2d');c.clearRect(0,0,wm.width,wm.height);
   g=c.createLinearGradient(0,my*K,0,top*K);
-  g.addColorStop(0,'rgba(255,214,150,.5)');g.addColorStop(t,'rgba(255,206,140,.16)');g.addColorStop(o(.35),'rgba(255,200,130,.07)');g.addColorStop(o(.7),'rgba(255,196,122,.02)');g.addColorStop(1,'rgba(255,196,122,0)');
-  c.filter='blur(5px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';
+  g.addColorStop(0,'rgba(255,226,168,.55)');g.addColorStop(t,'rgba(255,212,150,.2)');g.addColorStop(o(.35),'rgba(255,203,134,.08)');g.addColorStop(o(.7),'rgba(255,196,122,.025)');g.addColorStop(1,'rgba(255,196,122,0)');
+  c.filter='blur(7px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';
   hw.setAttribute('viewBox',`0 0 ${LW} ${H}`);
   hw.innerHTML=`<defs><radialGradient id="bulbg"><stop offset="0" stop-color="#fff6dc"/><stop offset=".35" stop-color="#ffd896" stop-opacity=".8"/><stop offset="1" stop-color="#ffb860" stop-opacity="0"/></radialGradient>
     <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4038"/><stop offset=".5" stop-color="#2a231d"/><stop offset="1" stop-color="#120e0b"/></linearGradient></defs>
