@@ -21,7 +21,7 @@ body{margin:0;background:var(--room);color:var(--dim);font:italic 15px/1.5 Georg
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .32 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(90deg,rgba(0,0,0,.05),transparent 8%,transparent 92%,rgba(0,0,0,.06)),var(--paper);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35);transition:transform .11s cubic-bezier(.3,.7,.4,1);will-change:transform}
 #paper.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
-.ln{height:var(--lh);white-space:pre;letter-spacing:1px}
+.ln{height:var(--lh);white-space:pre;letter-spacing:var(--ls,1px);word-spacing:var(--ws,0px)}
 .ln.plain{font-feature-settings:"liga","calt","kern"}
 .ln i.end{display:inline-block;width:0}
 .ln span{display:inline-block;opacity:var(--o,1);transform:translateY(var(--y,0))}
@@ -30,7 +30,7 @@ body{margin:0;background:var(--room);color:var(--dim);font:italic 15px/1.5 Georg
 #lamp.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 #lamp canvas,#lamp svg{position:absolute;inset:0;width:100%;height:100%}
 #hw{opacity:.5}
-#dk{opacity:.88;transition:opacity 2.4s ease}body.typing #dk{opacity:.92;transition:opacity .4s}
+#dk{opacity:var(--dko,.88);transition:opacity 2.4s ease}body.typing #dk{opacity:var(--dkt,.92);transition:opacity .4s}
 #wm{mix-blend-mode:screen;opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .4s ease}
 #bulb{transition:opacity 2.4s ease;opacity:.75}body.typing #bulb{opacity:1;transition:opacity .4s}
 .chrome,#menu,#hint{z-index:5}#menu{z-index:6}
@@ -46,7 +46,7 @@ body.typing #cur{animation:none}
 #saved.pending::before{background:#ff9f0a}
 #menuBtn{width:38px;height:38px;min-height:38px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#f2f2f7}
 body.typing .chrome{opacity:0;transform:translateY(10px)}body.typing #hint{opacity:0}
-#island{position:fixed;top:10px;left:50%;z-index:7;display:flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 16px;border-radius:20px;background:#000;color:#f2f2f7;font-size:13px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translate(-50%,-64px) scale(.6);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .25s}
+#island{position:fixed;top:64px;left:50%;z-index:7;display:flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 16px;border-radius:20px;background:#000;color:#f2f2f7;font-size:13px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.45);transform:translate(-50%,-64px) scale(.6);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .25s}
 #island.show{transform:translate(-50%,0) scale(1);opacity:1;pointer-events:auto}
 #island:not(.act){padding-right:16px}
 #isAct{height:26px;min-height:26px;padding:0 12px;border:0;border-radius:13px;background:rgba(255,255,255,.14);color:#e9c48a;font-size:13px}
@@ -86,6 +86,38 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 .cell.danger{color:#c98a72}.cell.danger:hover{color:#f0a88c}
 .foot{margin:6px 0 0;font-size:12px;color:#7d7468}
 .foot:empty{display:none}
+.rzone{position:fixed;top:0;left:0;right:0;height:84px;z-index:5}
+.ribbon{position:absolute;top:14px;left:50%;opacity:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:calc(100vw - 24px);padding:4px 14px 8px;border-radius:14px;background:rgba(26,22,18,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:.5px solid rgba(255,230,200,.12);box-shadow:0 10px 30px rgba(0,0,0,.4);color:#e8dfd0;transform:translate(-50%,-10px);transition:opacity .3s ease,transform .4s cubic-bezier(.32,.72,0,1)}
+.rzone:hover .ribbon,.ribbon:focus-within,.rzone.on .ribbon{opacity:1;transform:translateX(-50%);pointer-events:auto}
+body.typing .rzone:not(:hover) .ribbon{opacity:0;pointer-events:none}
+.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 16px;padding-bottom:4px;border-bottom:.5px solid rgba(255,230,200,.1);width:100%}
+.tabs button{min-height:30px;padding:0 2px;border:0;border-radius:0;font-size:12px;color:#7d7468}
+.tabs button:hover{color:#e8dfd0}
+.tabs button[aria-selected=true]{color:#f1eadc;box-shadow:inset 0 -1px 0 #e9c48a}
+.pane{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 22px;min-height:40px}
+.pane[hidden]{display:none}
+.rg{display:flex;align-items:center;gap:4px}
+.rg>span{font-size:12px;color:#8a8073;margin-right:6px;white-space:nowrap}
+.rg>button{width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:50%;color:#c9bfb0;font-size:17px;line-height:1}
+.rg>button:hover{background:rgba(255,255,255,.08);color:#f1eadc}
+.rg output{min-width:48px;text-align:center;font-size:13px;color:#f1eadc;font-variant-numeric:tabular-nums}
+.opts{display:flex;align-items:center;gap:2px 12px}
+.opts button{min-height:30px;padding:0;border:0;border-radius:0;font-size:13px;color:#7d7468}
+.opts button:hover{color:#e8dfd0}
+.opts button[aria-pressed=true]{color:#f1eadc;box-shadow:inset 0 -1px 0 #e9c48a}
+.opts .sw{width:20px;height:20px;min-height:20px;border-radius:50%;background:var(--c);border:1px solid rgba(255,255,255,.15)}
+.opts .sw[aria-pressed=true]{box-shadow:0 0 0 2px #1a1612,0 0 0 3.5px #e9c48a}
+.ribbon .reset{min-height:30px;padding:0 6px;border:0;font-size:12px;color:#c98a72}
+.ribbon .reset:hover{color:#f0a88c}
+body[data-tex=even] .ln span{opacity:1!important;transform:none!important}
+body[data-weight=bold] #paper{font-weight:700}
+body[data-rule=ruled] #lines{min-height:calc(40 * var(--lh));background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--lh) - 1px),rgba(70,100,150,.22) calc(var(--lh) - 1px),rgba(70,100,150,.22) var(--lh))}
+body[data-fade=on] .ln{transition:opacity .5s}
+body[data-fade=on] .ln:not(:last-child){opacity:.28}
+body[data-warm=candle] #wm{filter:sepia(.35) saturate(1.5)}
+body[data-warm=day] #wm{filter:saturate(.15) brightness(1.08)}
+#wc .goal{display:inline-block;vertical-align:middle;width:44px;height:3px;margin-left:8px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+#wc .goal i{display:block;height:100%;background:#e9c48a;width:var(--p,0%);transition:width .4s}
 @media(prefers-reduced-motion:reduce){#paper,#paper.ret,#cur,#lamp,#lamp.ret{transition:none}#cur{animation:none}}
 </style>
 </head>
@@ -97,6 +129,37 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
 <textarea id="ta" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Typewriter input"></textarea>
 <div class="chrome"><div class="bar"><span id="wc">0 words</span><span class="sep"></span><span id="saved">Saved</span>
   <button id="menuBtn" aria-label="Open the menu (Esc)" aria-haspopup="dialog"><svg width="18" height="4" viewBox="0 0 18 4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="currentColor"/><circle cx="9" cy="2" r="2" fill="currentColor"/><circle cx="16" cy="2" r="2" fill="currentColor"/></svg></button></div></div>
+<div class="rzone" id="rzone"><div class="ribbon" role="toolbar" aria-label="Page settings">
+  <div class="tabs" role="tablist">
+    <button role="tab" data-t="spacing" aria-selected="true">Spacing</button><button role="tab" data-t="ink" aria-selected="false">Ink</button><button role="tab" data-t="paper" aria-selected="false">Paper</button><button role="tab" data-t="light" aria-selected="false">Light</button><button role="tab" data-t="focus" aria-selected="false">Focus</button>
+  </div>
+  <div class="pane" data-p="spacing">
+    <div class="rg"><span>Letter</span><button data-k="ls" data-d="-1" aria-label="Less letter spacing">&minus;</button><output id="o-ls"></output><button data-k="ls" data-d="1" aria-label="More letter spacing">+</button></div>
+    <div class="rg"><span>Word</span><button data-k="ws" data-d="-1" aria-label="Less word spacing">&minus;</button><output id="o-ws"></output><button data-k="ws" data-d="1" aria-label="More word spacing">+</button></div>
+    <div class="rg"><span>Line</span><button data-k="lh" data-d="-1" aria-label="Less line spacing">&minus;</button><output id="o-lh"></output><button data-k="lh" data-d="1" aria-label="More line spacing">+</button></div>
+    <button class="reset" id="rreset">Reset</button>
+  </div>
+  <div class="pane" data-p="ink" hidden>
+    <div class="rg"><span>Colour</span><div class="opts" data-o="ink">
+      <button class="sw" data-v="black" style="--c:#1c1916" aria-label="Black"></button><button class="sw" data-v="sepia" style="--c:#5a3d26" aria-label="Sepia"></button><button class="sw" data-v="navy" style="--c:#1f3354" aria-label="Navy"></button><button class="sw" data-v="oxblood" style="--c:#6a1f1f" aria-label="Oxblood"></button><button class="sw" data-v="forest" style="--c:#24402e" aria-label="Forest"></button></div></div>
+    <div class="rg"><span>Weight</span><div class="opts" data-o="weight"><button data-v="regular">Regular</button><button data-v="bold">Bold</button></div></div>
+    <div class="rg"><span>Texture</span><div class="opts" data-o="tex"><button data-v="uneven">Inked</button><button data-v="even">Even</button></div></div>
+  </div>
+  <div class="pane" data-p="paper" hidden>
+    <div class="rg"><span>Tone</span><div class="opts" data-o="paper">
+      <button class="sw" data-v="cream" style="--c:#f1eadc" aria-label="Cream"></button><button class="sw" data-v="white" style="--c:#f7f6f2" aria-label="White"></button><button class="sw" data-v="kraft" style="--c:#d6bf98" aria-label="Kraft"></button><button class="sw" data-v="grey" style="--c:#d9d7d1" aria-label="Grey"></button><button class="sw" data-v="rose" style="--c:#efdcd4" aria-label="Rose"></button></div></div>
+    <div class="rg"><span>Lines</span><div class="opts" data-o="rule"><button data-v="none">Plain</button><button data-v="ruled">Ruled</button></div></div>
+  </div>
+  <div class="pane" data-p="light" hidden>
+    <div class="rg"><span>Brightness</span><div class="opts" data-o="bright"><button data-v="dim">Dim</button><button data-v="normal">Normal</button><button data-v="bright">Bright</button></div></div>
+    <div class="rg"><span>Warmth</span><div class="opts" data-o="warm"><button data-v="candle">Candle</button><button data-v="warm">Warm</button><button data-v="day">Daylight</button></div></div>
+    <div class="rg"><span>Flicker</span><div class="opts" data-o="flicker"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+  </div>
+  <div class="pane" data-p="focus" hidden>
+    <div class="rg"><span>Earlier lines</span><div class="opts" data-o="fade"><button data-v="off">Show</button><button data-v="on">Fade</button></div></div>
+    <div class="rg"><span>Word goal</span><div class="opts" data-o="goal"><button data-v="0">None</button><button data-v="250">250</button><button data-v="500">500</button><button data-v="1000">1000</button></div></div>
+  </div>
+</div></div>
 <div id="island" role="status" aria-live="polite"><span id="isTxt"></span><button id="isAct"></button></div>
 <div id="menu" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="sheet" tabindex="-1">
@@ -119,7 +182,7 @@ const paper=$('paper'),linesEl=$('lines'),cur=$('cur'),ta=$('ta'),menu=$('menu')
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let lines=store.get('tw-lines',['']);if(!Array.isArray(lines)||!lines.length)lines=[''];
 const FONTS={georgia:{n:'Georgia',ff:'Georgia',sc:1,st:'italic'},aston:{n:'Aston Script',ff:'"Aston Local"',sc:1.7,st:'normal',script:1},vibes:{n:'Great Vibes',ff:'"Great Vibes"',sc:1.45,st:'normal',script:1},pinyon:{n:'Pinyon Script',ff:'"Pinyon Script"',sc:1.25,st:'normal',script:1},allura:{n:'Allura',ff:'Allura',sc:1.5,st:'normal',script:1}};
-const S=Object.assign({sound:true,vol:.6,fs:18,cols:64,font:'georgia'},store.get('tw-set',{}));
+const S=Object.assign({sound:true,vol:.6,fs:18,cols:64,font:'georgia',sp:{ls:1,ws:0,lh:1.75},st:{}},store.get('tw-set',{}));
 const lineEls=[];
 
 /* ---------- sound: synthesized, no files ---------- */
@@ -163,7 +226,9 @@ function drawLine(i){
     return `<span style="--o:${(.74+rnd(k)*.26).toFixed(2)};--y:${((rnd(k+5)-.5)*.06).toFixed(3)}em">${esc(c)}</span>`}).join(''))+'<i class="end"></i>';
 }
 function drawAll(){linesEl.innerHTML='';lineEls.length=0;lines.forEach((_,i)=>drawLine(i));place(false)}
-let paperY=null;
+let paperY=null,goalHit=false;
+const STD={ink:'black',weight:'regular',tex:'uneven',paper:'cream',rule:'none',bright:'normal',warm:'warm',flicker:'on',fade:'off',goal:'0'};
+const ST=()=>Object.assign({},STD,(typeof S!=='undefined'&&S.st)||{});
 function place(isReturn){
   const row=lines.length-1,col=lines[row].length;
   const W=innerWidth,ch=cur.offsetWidth||S.fs*.6,pw=paper.offsetWidth,le=lineEls[row],end=le&&le.querySelector('i.end'),cx=end?end.offsetLeft:7*ch;
@@ -178,7 +243,7 @@ function place(isReturn){
   cur.style.left=cx.toFixed(1)+'px';cur.style.top=`calc(var(--mt) + ${row+1} * var(--lh) - .35em)`;
   if(lampEl){lampEl.classList.toggle('ret',!!isReturn);lampEl.style.transform=`translate3d(${(left+cx+ch/2-W/2).toFixed(1)}px,${(paperY+lt-H*.45).toFixed(1)}px,0)`}
   const w=lines.join(' ').trim().split(/\s+/).filter(Boolean).length;
-  $('wc').textContent=w===1?'1 word':w+' words';
+  const goal=+ST().goal||0;if(goal){$('wc').innerHTML=`${w} / ${goal}<span class="goal"><i style="--p:${Math.min(100,w/goal*100).toFixed(1)}%"></i></span>`;if(w>=goal&&!goalHit){goalHit=true;typeof island==='function'&&island('Goal reached: '+goal+' words')}if(w<goal)goalHit=false}else $('wc').textContent=w===1?'1 word':w+' words';
   $('hint').style.display=lines.length===1&&!lines[0]?'':'none';
 }
 let saveT;function save(){const sv=$('saved');sv.classList.add('pending');sv.textContent='Saving';clearTimeout(saveT);saveT=setTimeout(()=>{store.set('tw-lines',lines);sv.classList.remove('pending');sv.textContent='Saved'},400)}
@@ -274,7 +339,7 @@ function drawLamp(){
 }
 const lampRO=new ResizeObserver(drawLamp);lampRO.observe(document.documentElement);
 let idleT;function typing(){document.body.classList.add('typing');
-  wm.style.setProperty('--g',(.85+Math.random()*.15).toFixed(2));clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.remove('typing'),2500)}
+  wm.style.setProperty('--g',ST().flicker==='off'?'1':(.85+Math.random()*.15).toFixed(2));clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.remove('typing'),2500)}
 ta.addEventListener('keydown',e=>{
   ensureAudio();
   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();openMenu();return}
@@ -296,7 +361,7 @@ function handle(){
   if(txt.length>3){type(txt,true);snd.ret()}else type(txt);
 }
 function focusTa(){if(!menu.classList.contains('open')){ta.focus({preventScroll:true});resetTa()}}
-document.addEventListener('pointerdown',e=>{ensureAudio();if(!e.target.closest('.sheet,button,#island'))setTimeout(focusTa,0)});
+document.addEventListener('pointerdown',e=>{ensureAudio();if(!e.target.closest('.sheet,button,#island,.ribbon'))setTimeout(focusTa,0)});
 document.addEventListener('mousemove',()=>{if(document.body.classList.contains('typing')){clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.remove('typing'),400)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.classList.contains('open')){e.preventDefault();closeMenu()}});
 
@@ -318,7 +383,32 @@ function applyFont(){
   $('font').innerHTML=Object.entries(FONTS).map(([k,f])=>`<button data-f="${k}" aria-pressed="${k===S.font}" style="font-family:${f.ff.replace(/"/g,"'")},Georgia;font-style:${f.st};font-size:${f.script?19:16}px">${f.n}</button>`).join('');
   $('fontnote').textContent=S.font==='aston'?(astonInstalled()?'Aston Script found on this computer.':'Aston Script is not installed on this computer, so Georgia is showing. Install the font file, then reload.'):'';
 }
+const SP={ls:{min:-1,max:6,step:.5,def:1,f:v=>v+' px'},ws:{min:0,max:16,step:1,def:0,f:v=>v+' px'},lh:{min:1.3,max:2.6,step:.05,def:1.75,f:v=>v.toFixed(2)}};
+function applySpacing(){
+  if(!S.sp)S.sp={ls:1,ws:0,lh:1.75};
+  paper.style.setProperty('--ls',S.sp.ls+'px');paper.style.setProperty('--ws',S.sp.ws+'px');document.documentElement.style.setProperty('--lh',S.sp.lh+'em');
+  for(const k in SP)$('o-'+k).textContent=SP[k].f(S.sp[k]);
+}
+let rzT;$('rzone').addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const z=$('rzone');z.classList.add('on');clearTimeout(rzT);rzT=setTimeout(()=>z.classList.remove('on'),4000)});
+const INK={black:'#1c1916',sepia:'#5a3d26',navy:'#1f3354',oxblood:'#6a1f1f',forest:'#24402e'},PAPER={cream:'#f1eadc',white:'#f7f6f2',kraft:'#d6bf98',grey:'#d9d7d1',rose:'#efdcd4'},BRIGHT={dim:['.95','.97'],normal:['.88','.92'],bright:['.76','.8']};
+function applyStyle(){
+  const t=ST(),b=document.body;
+  for(const k of ['tex','weight','rule','fade','warm'])b.dataset[k]=t[k];
+  document.documentElement.style.setProperty('--ink',INK[t.ink]||INK.black);document.documentElement.style.setProperty('--paper',PAPER[t.paper]||PAPER.cream);
+  const br=BRIGHT[t.bright]||BRIGHT.normal;b.style.setProperty('--dko',br[0]);b.style.setProperty('--dkt',br[1]);
+  document.querySelectorAll('.opts').forEach(o=>o.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(t[o.dataset.o])===x.dataset.v)));
+}
+document.querySelector('.ribbon').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.t){document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.p!==b.dataset.t);return}
+  const o=b.closest('.opts');
+  if(o){S.st=Object.assign({},S.st||{},{[o.dataset.o]:b.dataset.v});applyStyle();place(false)}
+  else if(b.id==='rreset'){S.sp={ls:1,ws:0,lh:1.75};applySpacing()}
+  else if(b.dataset.k){const k=b.dataset.k,c=SP[k];let v=S.sp[k]+(+b.dataset.d)*c.step;v=Math.min(c.max,Math.max(c.min,Math.round(v/c.step)*c.step));S.sp[k]=+v.toFixed(2);applySpacing()}
+  store.set('tw-set',S);place(false);focusTa();
+});
 function applySet(){
+  applySpacing();applyStyle();
   applyFont();
   document.documentElement.style.setProperty('--fs',S.fs+'px');paper.style.setProperty('--cols',S.cols);
   $('snd').setAttribute('aria-checked',S.sound);
