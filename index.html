@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Night Typewriter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pinyon+Script&family=Allura&display=swap" rel="stylesheet">
 <style>
 /* VOICE: quiet, late-night, tactile; almost nothing on screen.
    IDEA: a real typewriter carriage: the strike point never moves, the sheet slides under it.
@@ -11,19 +13,23 @@
    COLOUR and TYPE: warm near-black room, paper #f1eadc, black ink; Georgia italic throughout.
    LAYOUT: full-bleed room, strike point fixed at centre; chrome fades away while typing. */
 :root{color-scheme:dark;--room:#070504;--paper:#f1eadc;--ink:#1c1916;--dim:#a89c8a;--fs:18px;--ml:7ch;--mt:6em;--lh:1.75em}
+@font-face{font-family:"Aston Local";src:local("Aston Script"),local("AstonScript-Regular"),local("Aston Script Regular"),local("Aston Script Pro"),local("AstonScriptPro-Regular")}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
 body{margin:0;background:var(--room);color:var(--dim);font:italic 15px/1.5 Georgia,"Times New Roman",serif;overflow:hidden;cursor:text}
-#paper{position:absolute;left:0;top:0;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:var(--fs);line-height:var(--lh);width:calc(var(--cols,64) * 1ch + 14ch);padding:var(--mt) 0 0 var(--ml);color:var(--ink);
+#paper{position:absolute;left:0;top:0;font-family:var(--ff,Georgia),Georgia,serif;font-style:var(--fst,italic);font-size:calc(var(--fs) * var(--fsc,1));line-height:var(--lh);width:calc(var(--cols,64) * 1ch + 14ch);padding:var(--mt) 0 0 var(--ml);color:var(--ink);
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .32 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(90deg,rgba(0,0,0,.05),transparent 8%,transparent 92%,rgba(0,0,0,.06)),var(--paper);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35);transition:transform .11s cubic-bezier(.3,.7,.4,1);will-change:transform}
 #paper.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 .ln{height:var(--lh);white-space:pre}
+.ln.plain{font-feature-settings:"liga","calt","kern"}
+.ln i.end{display:inline-block;width:0}
 .ln span{display:inline-block;opacity:var(--o,1);transform:translateY(var(--y,0))}
 .light{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
 #lamp{position:fixed;top:0;left:-50vw;width:200vw;height:100vh;pointer-events:none;will-change:transform;transition:transform .14s cubic-bezier(.3,.7,.4,1)}
 #lamp.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 #lamp canvas,#lamp svg{position:absolute;inset:0;width:100%;height:100%}
+#hw{opacity:.5}
 #dk{opacity:.88;transition:opacity 2.4s ease}body.typing #dk{opacity:.92;transition:opacity .4s}
 #wm{mix-blend-mode:screen;opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .4s ease}
 #bulb{transition:opacity 2.4s ease;opacity:.75}body.typing #bulb{opacity:1;transition:opacity .4s}
@@ -69,6 +75,8 @@ input[type=range]{width:140px;accent-color:#e9c48a;min-height:44px}
     <div class="row"><label for="vol">Volume</label><input id="vol" type="range" min="0" max="1" step="0.05" value="0.6"></div>
     <div class="row"><span>Type size</span><div class="seg" id="size"><button data-s="16">S</button><button data-s="18">M</button><button data-s="21">L</button></div></div>
     <div class="row"><span>Line width</span><div class="seg" id="width"><button data-c="48">48</button><button data-c="64">64</button><button data-c="80">80</button></div></div>
+    <div class="row" style="flex-wrap:wrap"><span>Font</span><div class="seg" id="font" style="flex-wrap:wrap"></div></div>
+    <p id="fontnote" style="margin:6px 0 0"></p>
     <div class="acts"><button id="copy">Copy text</button><button id="new">New sheet</button><button id="close">Back to writing</button></div>
     <div id="confirm">Clear this sheet? It can't be undone. <div class="acts"><button id="yes">Clear it</button><button id="no">Keep it</button></div></div>
     <div id="status" aria-live="polite"></div>
@@ -80,7 +88,8 @@ const $=id=>document.getElementById(id);
 const paper=$('paper'),linesEl=$('lines'),cur=$('cur'),ta=$('ta'),menu=$('menu');
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let lines=store.get('tw-lines',['']);if(!Array.isArray(lines)||!lines.length)lines=[''];
-const S=Object.assign({sound:true,vol:.6,fs:18,cols:64},store.get('tw-set',{}));
+const FONTS={georgia:{n:'Georgia',ff:'Georgia',sc:1,st:'italic'},aston:{n:'Aston Script',ff:'"Aston Local"',sc:1.7,st:'normal',script:1},vibes:{n:'Great Vibes',ff:'"Great Vibes"',sc:1.45,st:'normal',script:1},pinyon:{n:'Pinyon Script',ff:'"Pinyon Script"',sc:1.25,st:'normal',script:1},allura:{n:'Allura',ff:'Allura',sc:1.5,st:'normal',script:1}};
+const S=Object.assign({sound:true,vol:.6,fs:18,cols:64,font:'georgia'},store.get('tw-set',{}));
 const lineEls=[];
 
 /* ---------- sound: synthesized, no files ---------- */
@@ -118,13 +127,15 @@ const rnd=n=>{const x=Math.sin(n*12.9898)*43758.5453;return x-Math.floor(x)};
 function drawLine(i){
   let el=lineEls[i];
   if(!el){el=document.createElement('div');el.className='ln';linesEl.appendChild(el);lineEls[i]=el}
-  el.innerHTML=[...lines[i]].map((c,j)=>{const k=i*131+j*17;
-    return `<span style="--o:${(.74+rnd(k)*.26).toFixed(2)};--y:${((rnd(k+5)-.5)*.06).toFixed(3)}em">${c==='<'?'&lt;':c==='&'?'&amp;':c}</span>`}).join('');
+  const esc=c=>c==='<'?'&lt;':c==='&'?'&amp;':c,F=FONTS[S.font]||FONTS.georgia;
+  el.classList.toggle('plain',!!F.script);
+  el.innerHTML=(F.script?[...lines[i]].map(esc).join(''):[...lines[i]].map((c,j)=>{const k=i*131+j*17;
+    return `<span style="--o:${(.74+rnd(k)*.26).toFixed(2)};--y:${((rnd(k+5)-.5)*.06).toFixed(3)}em">${esc(c)}</span>`}).join(''))+'<i class="end"></i>';
 }
 function drawAll(){linesEl.innerHTML='';lineEls.length=0;lines.forEach((_,i)=>drawLine(i));place(false)}
 function place(isReturn){
   const row=lines.length-1,col=lines[row].length;
-  const W=innerWidth,ch=cur.offsetWidth||S.fs*.6,pw=paper.offsetWidth,le=lineEls[row],last=le&&le.lastElementChild,cx=last?last.offsetLeft+last.offsetWidth:(le?le.offsetLeft:7*ch);
+  const W=innerWidth,ch=cur.offsetWidth||S.fs*.6,pw=paper.offsetWidth,le=lineEls[row],end=le&&le.querySelector('i.end'),cx=end?end.offsetLeft:7*ch;
   const left=pw<=W-24?(W-pw)/2:W/2-cx;                 // sheet stays still; on narrow screens it slides so the letter stays in view
   paper.classList.toggle('ret',!!isReturn);
   paper.style.transform=`translate(${left.toFixed(1)}px, calc(45vh - var(--mt) - ${row} * var(--lh)))`;
@@ -242,19 +253,32 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.classList.cont
 /* ---------- the desk menu ---------- */
 function openMenu(){menu.classList.add('open');$('status').textContent='';$('confirm').classList.remove('on');$('close').focus()}
 function closeMenu(){menu.classList.remove('open');focusTa()}
+function astonInstalled(){
+  try{const c=document.createElement('canvas').getContext('2d'),t='Hamburgefonstiv Qy 0123';
+    c.font='40px monospace';const a=c.measureText(t).width;c.font='40px "Aston Local", monospace';return Math.abs(c.measureText(t).width-a)>1}catch(e){return false}
+}
+function applyFont(){
+  const F=FONTS[S.font]||FONTS.georgia;
+  paper.style.setProperty('--ff',F.ff);paper.style.setProperty('--fsc',F.sc);paper.style.setProperty('--fst',F.st);
+  $('font').innerHTML=Object.entries(FONTS).map(([k,f])=>`<button data-f="${k}" aria-pressed="${k===S.font}" style="font-family:${f.ff.replace(/"/g,"'")},Georgia;font-style:${f.st};font-size:${f.script?20:15}px">${f.n}</button>`).join('');
+  $('fontnote').textContent=S.font==='aston'?(astonInstalled()?'Aston Script found on this computer.':'Aston Script is not installed on this computer, so Georgia is showing. Install the font file, then reload.'):'';
+}
 function applySet(){
+  applyFont();
   document.documentElement.style.setProperty('--fs',S.fs+'px');paper.style.setProperty('--cols',S.cols);
   $('snd').textContent=S.sound?'On':'Off';$('snd').setAttribute('aria-pressed',S.sound);
   $('vol').value=S.vol;if(master)master.gain.value=S.vol;
   document.querySelectorAll('#size button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.s===S.fs));
   document.querySelectorAll('#width button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.c===S.cols));
-  store.set('tw-set',S);place(false);drawLamp();
+  store.set('tw-set',S);drawAll();drawLamp();
 }
 $('menuBtn').onclick=openMenu;$('close').onclick=closeMenu;
 menu.addEventListener('click',e=>{if(e.target===menu)closeMenu()});
 $('snd').onclick=()=>{S.sound=!S.sound;applySet()};
 $('vol').oninput=e=>{S.vol=+e.target.value;applySet();ensureAudio();snd.key()};
 $('size').onclick=e=>{const b=e.target.closest('button');if(b){S.fs=+b.dataset.s;applySet()}};
+$('font').onclick=e=>{const b=e.target.closest('button');if(b){S.font=b.dataset.f;applySet()}};
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawAll();applyFont()});
 $('width').onclick=e=>{const b=e.target.closest('button');if(b){S.cols=+b.dataset.c;applySet()}};
 $('copy').onclick=async()=>{
   const text=lines.join('\n');
