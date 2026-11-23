@@ -199,17 +199,25 @@ function drawLamp(){
   const half=mw+(R-mw)*(my-top)/(my-fy);
   const cone=`${P(mx+mw,my)} ${P(mx+half,top)} ${P(mx-half,top)} ${P(mx-mw,my)}`;
   const t=((my-ty)/(my-top)).toFixed(3),o=k=>(+t+(1-t)*k).toFixed(3);
+  const R2=Math.min(W,H)*.8,mw2=mw*1.4,half2=mw2+(R2-mw2)*(my-top)/(my-fy);
+  const wide=`${P(mx+mw2,my+6)} ${P(mx+half2,top)} ${P(mx-half2,top)} ${P(mx-mw2,my+6)}`;
   paint(dk,`<defs>
     <linearGradient id="mg" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
       <stop offset="0" stop-color="#000"/><stop offset="${t}" stop-color="#000"/><stop offset="${o(.3)}" stop-color="#444"/><stop offset="${o(.65)}" stop-color="#aaa"/><stop offset="1" stop-color="#fff"/></linearGradient>
     <filter id="edge" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
-    <mask id="lit" maskUnits="userSpaceOnUse" x="0" y="0" width="${LW}" height="${H}"><rect width="${LW}" height="${H}" fill="#fff"/><polygon filter="url(#edge)" fill="url(#mg)" points="${cone}"/></mask>
+    <filter id="edge2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+    <linearGradient id="mg2" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
+      <stop offset="0" stop-color="#8a8a8a"/><stop offset="${t}" stop-color="#959595"/><stop offset="${o(.4)}" stop-color="#cfcfcf"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <mask id="lit" maskUnits="userSpaceOnUse" x="0" y="0" width="${LW}" height="${H}"><rect width="${LW}" height="${H}" fill="#fff"/><polygon filter="url(#edge2)" fill="url(#mg2)" points="${wide}"/><polygon filter="url(#edge)" fill="url(#mg)" points="${cone}"/></mask>
   </defs><rect width="${LW}" height="${H}" fill="#050302" mask="url(#lit)"/>`,LW,H);
   paint(wm,`<defs>
     <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
       <stop offset="0" stop-color="#ffe2a8" stop-opacity=".55"/><stop offset="${t}" stop-color="#ffd496" stop-opacity=".2"/><stop offset="${o(.35)}" stop-color="#ffcb86" stop-opacity=".08"/><stop offset="${o(.7)}" stop-color="#ffc47a" stop-opacity=".025"/><stop offset="1" stop-color="#ffc47a" stop-opacity="0"/></linearGradient>
     <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
-  </defs><polygon filter="url(#soft)" fill="url(#bg)" points="${cone}"/>`,LW,H);
+    <filter id="soft2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="34"/></filter>
+    <linearGradient id="bg2" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
+      <stop offset="0" stop-color="#ffdca0" stop-opacity=".22"/><stop offset="${t}" stop-color="#ffd496" stop-opacity=".09"/><stop offset="${o(.4)}" stop-color="#ffcb86" stop-opacity=".03"/><stop offset="1" stop-color="#ffc47a" stop-opacity="0"/></linearGradient>
+  </defs><polygon filter="url(#soft2)" fill="url(#bg2)" points="${wide}"/><polygon filter="url(#soft)" fill="url(#bg)" points="${cone}"/>`,LW,H);
   hw.setAttribute('viewBox',`0 0 ${LW} ${H}`);
   hw.innerHTML=`<defs><radialGradient id="bulbg"><stop offset="0" stop-color="#fff6dc"/><stop offset=".35" stop-color="#ffd896" stop-opacity=".8"/><stop offset="1" stop-color="#ffb860" stop-opacity="0"/></radialGradient>
     <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4038"/><stop offset=".5" stop-color="#2a231d"/><stop offset="1" stop-color="#120e0b"/></linearGradient></defs>
