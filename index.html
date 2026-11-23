@@ -192,7 +192,7 @@ function paint(cv,inner,W,H){
 function drawLamp(){
   const W=innerWidth,H=innerHeight,fs=S.fs,LW=2*W;
   const ty=H*.45+fs*.9;
-  const mx=W,my=Math.min(H-110,ty+Math.max(150,H*.26));   // centre of the double-width layer
+  const mx=W,my=Math.min(H-110,ty+Math.max(115,H*.2));   // centre of the double-width layer
   const R=Math.min(W,H)*.4,mw=30,fy=ty-R*.5;
   const P=(x,y)=>x.toFixed(1)+','+y.toFixed(1);
   const top=Math.min(-40,ty-H*.75);
