@@ -21,7 +21,7 @@ body{margin:0;background:var(--room);color:var(--dim);font:italic 15px/1.5 Georg
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .32 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(90deg,rgba(0,0,0,.05),transparent 8%,transparent 92%,rgba(0,0,0,.06)),var(--paper);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35);transition:transform .11s cubic-bezier(.3,.7,.4,1);will-change:transform}
 #paper.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
-.ln{height:var(--lh);white-space:pre}
+.ln{height:var(--lh);white-space:pre;letter-spacing:1px}
 .ln.plain{font-feature-settings:"liga","calt","kern"}
 .ln i.end{display:inline-block;width:0}
 .ln span{display:inline-block;opacity:var(--o,1);transform:translateY(var(--y,0))}
@@ -185,19 +185,26 @@ let saveT;function save(){const sv=$('saved');sv.classList.add('pending');sv.tex
 
 /* ---------- the carriage ---------- */
 function newline(quiet){lines.push('');drawLine(lines.length-1);if(!quiet)snd.ret();place(true)}
+/* Lines wrap by how wide the text really is on the page, not by counting letters,
+   so proportional and script fonts use the whole width of the sheet. */
+function lineEnd(row){const e=lineEls[row]&&lineEls[row].querySelector('i.end');return e?e.offsetLeft:0}
+function lineLimit(){const ch=cur.offsetWidth||S.fs*.6;return ch*7+ch*S.cols}
+let bellRow=-1;
 function type(c,quiet){
   if(c==='\n'){newline(quiet);return}
   if(c==='\t')c='    ';
   for(const ch of c){
     const row=lines.length-1;
-    if(lines[row].length>=S.cols){
-      if(ch===' '){newline(quiet);continue}
-      const m=lines[row].match(/(\S+)$/);
-      if(m&&m[1].length<S.cols){lines[row]=lines[row].slice(0,-m[1].length);drawLine(row);lines.push(m[1]+ch)}else lines.push(ch);
-      drawLine(lines.length-1);if(!quiet)snd.ret();place(true);continue;
-    }
     lines[row]+=ch;drawLine(row);
-    if(!quiet){ch===' '?snd.space():snd.key();if(lines[row].length===S.cols-6)snd.bell()}
+    const lim=lineLimit();
+    if(lineEnd(row)>lim&&lines[row].length>1){
+      if(ch===' '){lines[row]=lines[row].slice(0,-1);drawLine(row);newline(quiet);continue}
+      const m=lines[row].match(/(\S+)$/);
+      if(m&&m[1].length<lines[row].length){lines[row]=lines[row].slice(0,-m[1].length).replace(/ +$/,'');lines.push(m[1])}
+      else{lines[row]=lines[row].slice(0,-1);lines.push(ch)}
+      drawLine(row);drawLine(lines.length-1);if(!quiet)snd.ret();place(true);continue;
+    }
+    if(!quiet){ch===' '?snd.space():snd.key();if(bellRow!==row&&lineEnd(row)>lim-(cur.offsetWidth||10)*6){bellRow=row;snd.bell()}}
     place(false);
   }
   save();
