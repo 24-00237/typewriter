@@ -27,7 +27,9 @@ body{margin:0;background:var(--room);color:var(--dim);font:15px/1.5 "Courier Pri
 #lamp{position:fixed;top:0;left:-50vw;width:200vw;height:100vh;pointer-events:none;will-change:transform;transition:transform .14s cubic-bezier(.3,.7,.4,1)}
 #lamp.ret{transition:transform .38s cubic-bezier(.5,0,.2,1)}
 #lamp canvas,#lamp svg{position:absolute;inset:0;width:100%;height:100%}
-#wm{mix-blend-mode:screen;opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .35s ease}
+#dk{opacity:.88;transition:opacity 2.4s ease}body.typing #dk{opacity:.92;transition:opacity .4s}
+#wm{mix-blend-mode:screen;opacity:.6;transition:opacity 2.4s ease}body.typing #wm{opacity:var(--g,1);transition:opacity .4s ease}
+#bulb{transition:opacity 2.4s ease;opacity:.75}body.typing #bulb{opacity:1;transition:opacity .4s}
 .chrome,#menu,#hint{z-index:5}
 #cur{position:absolute;width:1ch;height:2px;background:var(--ink);opacity:.35;transition:top .3s;animation:blink 1.4s steps(2) infinite}
 @keyframes blink{50%{opacity:.08}}
@@ -170,30 +172,43 @@ function resetTa(){ta.value=SENT;try{ta.setSelectionRange(1,1)}catch(e){}}
 const lampEl=$('lamp'),dk=$('dk'),wm=$('wm'),hw=$('hw');
 /* Light is painted once per resize into two small canvases that the browser stretches
    (the stretch softens the edges for free); typing only slides the layer sideways on the GPU. */
+/* The original lamp, drawn exactly as before (same SVG blurs, mask and gradients), but rasterised
+   once per resize into two images. Typing only slides those images, so nothing is re-blurred per key. */
+function paint(cv,inner,W,H){
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${inner}</svg>`;
+  const img=new Image();
+  img.onload=()=>{cv.width=W;cv.height=H;const c=cv.getContext('2d');c.clearRect(0,0,W,H);c.drawImage(img,0,0)};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
 function drawLamp(){
-  const W=innerWidth,H=innerHeight,fs=S.fs,LW=2*W,K=1/4;
-  const ty=H*.45+fs*.9,mx=W,my=Math.min(H-110,ty+Math.max(150,H*.26));
-  const R=Math.min(W,H)*.26,mw=30,fy=ty-R*.5,top=Math.min(-40,ty-H*.75);
-  const half=mw+(R-mw)*(my-top)/(my-fy),t=(my-ty)/(my-top),o=k=>t+(1-t)*k;
-  const cone=c=>{c.beginPath();c.moveTo((mx-mw)*K,my*K);c.lineTo((mx+mw)*K,my*K);c.lineTo((mx+half)*K,top*K);c.lineTo((mx-half)*K,top*K);c.closePath()};
-  for(const cv of [dk,wm]){cv.width=Math.ceil(LW*K);cv.height=Math.ceil(H*K)}
-  let c=dk.getContext('2d');
-  c.fillStyle='rgba(5,3,2,.9)';c.fillRect(0,0,dk.width,dk.height);
-  let g=c.createLinearGradient(0,my*K,0,top*K);
-  g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(t,'rgba(0,0,0,1)');g.addColorStop(o(.3),'rgba(0,0,0,.72)');g.addColorStop(o(.65),'rgba(0,0,0,.33)');g.addColorStop(1,'rgba(0,0,0,0)');
-  c.globalCompositeOperation='destination-out';c.filter='blur(8px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';c.globalCompositeOperation='source-over';
-  c=wm.getContext('2d');c.clearRect(0,0,wm.width,wm.height);
-  g=c.createLinearGradient(0,my*K,0,top*K);
-  g.addColorStop(0,'rgba(255,226,168,.55)');g.addColorStop(t,'rgba(255,212,150,.2)');g.addColorStop(o(.35),'rgba(255,203,134,.08)');g.addColorStop(o(.7),'rgba(255,196,122,.025)');g.addColorStop(1,'rgba(255,196,122,0)');
-  c.filter='blur(7px)';c.fillStyle=g;cone(c);c.fill();c.filter='none';
+  const W=innerWidth,H=innerHeight,fs=S.fs,LW=2*W;
+  const ty=H*.45+fs*.9;
+  const mx=W,my=Math.min(H-110,ty+Math.max(150,H*.26));   // centre of the double-width layer
+  const R=Math.min(W,H)*.26,mw=30,fy=ty-R*.5;
+  const P=(x,y)=>x.toFixed(1)+','+y.toFixed(1);
+  const top=Math.min(-40,ty-H*.75);
+  const half=mw+(R-mw)*(my-top)/(my-fy);
+  const cone=`${P(mx+mw,my)} ${P(mx+half,top)} ${P(mx-half,top)} ${P(mx-mw,my)}`;
+  const t=((my-ty)/(my-top)).toFixed(3),o=k=>(+t+(1-t)*k).toFixed(3);
+  paint(dk,`<defs>
+    <linearGradient id="mg" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
+      <stop offset="0" stop-color="#000"/><stop offset="${t}" stop-color="#000"/><stop offset="${o(.3)}" stop-color="#444"/><stop offset="${o(.65)}" stop-color="#aaa"/><stop offset="1" stop-color="#fff"/></linearGradient>
+    <filter id="edge" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
+    <mask id="lit" maskUnits="userSpaceOnUse" x="0" y="0" width="${LW}" height="${H}"><rect width="${LW}" height="${H}" fill="#fff"/><polygon filter="url(#edge)" fill="url(#mg)" points="${cone}"/></mask>
+  </defs><rect width="${LW}" height="${H}" fill="#050302" mask="url(#lit)"/>`,LW,H);
+  paint(wm,`<defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="${mx}" y1="${my}" x2="${mx}" y2="${top}">
+      <stop offset="0" stop-color="#ffe2a8" stop-opacity=".55"/><stop offset="${t}" stop-color="#ffd496" stop-opacity=".2"/><stop offset="${o(.35)}" stop-color="#ffcb86" stop-opacity=".08"/><stop offset="${o(.7)}" stop-color="#ffc47a" stop-opacity=".025"/><stop offset="1" stop-color="#ffc47a" stop-opacity="0"/></linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+  </defs><polygon filter="url(#soft)" fill="url(#bg)" points="${cone}"/>`,LW,H);
   hw.setAttribute('viewBox',`0 0 ${LW} ${H}`);
   hw.innerHTML=`<defs><radialGradient id="bulbg"><stop offset="0" stop-color="#fff6dc"/><stop offset=".35" stop-color="#ffd896" stop-opacity=".8"/><stop offset="1" stop-color="#ffb860" stop-opacity="0"/></radialGradient>
     <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4038"/><stop offset=".5" stop-color="#2a231d"/><stop offset="1" stop-color="#120e0b"/></linearGradient></defs>
-  <path d="M${mx},${my+78} L${mx},${H+80}" stroke="#1d1813" stroke-width="7" stroke-linecap="round"/>
+  <path d="M${P(mx,my+78)} L${P(mx,H+80)}" stroke="#1d1813" stroke-width="7" fill="none" stroke-linecap="round"/>
   <g transform="translate(${mx} ${my}) rotate(-90)">
     <path d="M-80,-13 Q-92,0 -80,13 L0,${mw} L0,-${mw} Z" fill="url(#metal)"/>
     <path d="M-80,-13 L0,-${mw}" stroke="#7a6a58" stroke-opacity=".6" stroke-width="1.5"/>
-    <ellipse cx="2" cy="0" rx="14" ry="${mw+6}" fill="url(#bulbg)"/>
+    <ellipse id="bulb" cx="2" cy="0" rx="14" ry="${mw+6}" fill="url(#bulbg)"/>
     <ellipse cx="0" cy="0" rx="3" ry="${mw}" fill="#ffe9bf" opacity=".9"/>
   </g>`;
   place(false);
